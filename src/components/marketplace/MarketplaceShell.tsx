@@ -80,9 +80,26 @@ export function MarketplaceShell({
         <div className="mx-auto flex max-w-7xl flex-col gap-5 px-5 py-4 lg:px-8">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div>
-              <div className="flex items-center gap-3 text-sm font-semibold uppercase tracking-[0.18em] text-[#9b6a2e]">
-                <ShieldCheck className="h-4 w-4" />
-                N5Deal
+              <div className="flex flex-wrap items-center gap-3">
+                <div className="flex items-center gap-3 text-sm font-semibold uppercase tracking-[0.18em] text-[#9b6a2e]">
+                  <ShieldCheck className="h-4 w-4" />
+                  N5Deal
+                </div>
+                <label className="flex h-8 items-center gap-2 rounded-md border border-[#d8c7b4] bg-[#fffaf3] px-2 text-xs font-semibold tracking-normal text-[#17130f]">
+                  <Globe2 className="h-3.5 w-3.5 text-[#9b6a2e]" />
+                  <select
+                    value={locale}
+                    onChange={(event) => setLocale(event.target.value as typeof locales[number])}
+                    aria-label="Language"
+                    className="bg-transparent outline-none"
+                  >
+                    {locales.map((item) => (
+                      <option key={item} value={item}>
+                        {localeShortLabels[item]}
+                      </option>
+                    ))}
+                  </select>
+                </label>
               </div>
               <h1 className="mt-2 text-3xl font-semibold lg:text-4xl">{localizedTitle}</h1>
             </div>
@@ -93,21 +110,6 @@ export function MarketplaceShell({
                   <option value="buyer">{t("buyer")}</option>
                   <option value="seller">{t("seller")}</option>
                   <option value="manager">{t("manager")}</option>
-                </select>
-              </label>
-              <label className="flex h-11 w-24 items-center gap-2 rounded-md border border-[#d8c7b4] bg-[#fffaf3] px-3 text-sm font-semibold">
-                <Globe2 className="h-4 w-4 text-[#9b6a2e]" />
-                <select
-                  value={locale}
-                  onChange={(event) => setLocale(event.target.value as typeof locales[number])}
-                  aria-label="Language"
-                  className="w-full bg-transparent outline-none"
-                >
-                  {locales.map((item) => (
-                    <option key={item} value={item}>
-                      {localeShortLabels[item]}
-                    </option>
-                  ))}
                 </select>
               </label>
               <select
