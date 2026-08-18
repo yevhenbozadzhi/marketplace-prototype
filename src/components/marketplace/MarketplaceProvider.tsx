@@ -1,152 +1,20 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { createContext, FormEvent, ReactNode, useContext, useEffect, useMemo, useState } from "react";
-import { calculateMatchScore } from "@/lib/matching";
+import { FormEvent, ReactNode, useEffect, useMemo, useState } from "react";
+import { makeId } from "@/lib/ids";
 import { cloneSeedState } from "@/lib/seed";
 import type { Asset, ContactRequest, MarketplaceState, Participant, Role } from "@/lib/types";
-import { normalize } from "@/lib/format";
-import { isLocale, type Locale, translate, type TranslationKey } from "@/lib/i18n";
+import { type Locale, translate } from "@/lib/i18n";
+import { deriveMarketplaceData } from "@/lib/marketplace-selectors";
+import {
+  loadMarketplacePrefs,
+  loadMarketplaceState,
+  saveMarketplacePrefs,
+  saveMarketplaceState,
+} from "@/lib/marketplace-storage";
 import { ToastMessage, ToastViewport } from "@/components/ui/Toast";
-
-const storageKey = "n5deal-marketplace-state-v1";
-const prefsKey = "n5deal-marketplace-prefs-v1";
-
-function makeId(prefix: string) {
-  return `${prefix}-${Math.random().toString(36).slice(2, 10)}`;
-}
-
-function loadState(): MarketplaceState {
-  if (typeof window === "undefined") return cloneSeedState();
-  const raw = window.localStorage.getItem(storageKey);
-  if (!raw) return cloneSeedState();
-  try {
-    return JSON.parse(raw) as MarketplaceState;
-  } catch {
-    return cloneSeedState();
-  }
-}
-
-function loadPrefs() {
-  if (typeof window === "undefined") return {};
-  const raw = window.localStorage.getItem(prefsKey);
-  if (!raw) return {};
-  try {
-    return JSON.parse(raw) as Partial<{
-      role: Role;
-      currentUserId: string;
-      query: string;
-      sector: string;
-      region: string;
-      locale: Locale;
-    }>;
-  } catch {
-    return {};
-  }
-}
-
-type MarketplaceContextValue = {
-  state: MarketplaceState;
-  role: Role;
-  currentUserId: string;
-  currentUser?: Participant;
-  buyerProfile: ReturnType<typeof deriveMarketplaceData>["buyerProfile"];
-  buyers: Participant[];
-  sellers: Participant[];
-  sectors: string[];
-  regions: string[];
-  query: string;
-  sector: string;
-  region: string;
-  locale: Locale;
-  activity: string;
-  isLoading: boolean;
-  isSyncing: boolean;
-  filteredAssets: Asset[];
-  filteredBuyers: Participant[];
-  visibleContacts: ContactRequest[];
-  currentAssetCount: number;
-  setQuery: (value: string) => void;
-  setSector: (value: string) => void;
-  setRegion: (value: string) => void;
-  setLocale: (value: Locale) => void;
-  t: (key: TranslationKey) => string;
-  switchRole: (role: Role) => void;
-  switchUser: (userId: string) => void;
-  resetDemo: () => void;
-  openAsset: (assetId: string) => void;
-  openChat: (participant: Participant, asset?: Asset) => void;
-  sendChatMessage: (chatId: string, event: FormEvent<HTMLFormElement>) => void;
-  publishAsset: (event: FormEvent<HTMLFormElement>) => void;
-  createParticipant: (event: FormEvent<HTMLFormElement>) => void;
-  signUp: (event: FormEvent<HTMLFormElement>) => void;
-  updateAsset: (assetId: string, event: FormEvent<HTMLFormElement>) => void;
-  updateBuyerProfile: (event: FormEvent<HTMLFormElement>) => void;
-  updateParticipantStatus: (id: string, status: Participant["status"]) => void;
-  getCounterparty: (contact: ContactRequest) => Participant | undefined;
-  getAsset: (assetId: string) => Asset | undefined;
-  canUseChat: (contact: ContactRequest) => boolean;
-};
-
-const MarketplaceContext = createContext<MarketplaceContextValue | null>(null);
-
-function deriveMarketplaceData(
-  state: MarketplaceState,
-  currentUserId: string,
-  query: string,
-  sector: string,
-  region: string,
-) {
-  const currentUser = state.participants.find((participant) => participant.id === currentUserId);
-  const buyerProfile = state.buyerProfiles.find((profile) => profile.participantId === currentUserId);
-  const buyers = state.participants.filter((participant) => participant.role === "buyer" && (currentUser?.role === "manager" || participant.status === "active"));
-  const sellers = state.participants.filter((participant) => participant.role === "seller" && (currentUser?.role === "manager" || participant.status === "active"));
-  const sectors = Array.from(new Set(state.assets.map((asset) => asset.sector)));
-  const regions = Array.from(new Set(state.assets.map((asset) => asset.region)));
-
-  const filteredAssets = state.assets
-    .filter((asset) => asset.status === "published")
-    .filter((asset) => currentUser?.role === "manager" || state.participants.find((participant) => participant.id === asset.sellerId)?.status === "active")
-    .filter((asset) => sector === "all" || asset.sector === sector)
-    .filter((asset) => region === "all" || asset.region === region)
-    .filter((asset) =>
-      [asset.title, asset.description, asset.sector, asset.region, asset.type]
-        .join(" ")
-        .toLowerCase()
-        .includes(normalize(query)),
-    )
-    .sort((a, b) => calculateMatchScore(b, buyerProfile).score - calculateMatchScore(a, buyerProfile).score);
-
-  const filteredBuyers = buyers.filter((buyer) => {
-    const profile = state.buyerProfiles.find((item) => item.participantId === buyer.id);
-    return [buyer.name, buyer.company, buyer.location, buyer.tags.join(" "), profile?.interestText, profile?.targetSectors.join(" ")]
-      .join(" ")
-      .toLowerCase()
-      .includes(normalize(query));
-  });
-
-  const visibleContacts = currentUser
-    ? state.contacts.filter((contact) => contact.fromId === currentUser.id || contact.toId === currentUser.id)
-    : [];
-
-  const currentAssetCount =
-    currentUser?.role === "seller"
-      ? state.assets.filter((asset) => asset.sellerId === currentUser.id).length
-      : filteredAssets.length;
-
-  return {
-    currentUser,
-    buyerProfile,
-    buyers,
-    sellers,
-    sectors,
-    regions,
-    filteredAssets,
-    filteredBuyers,
-    visibleContacts,
-    currentAssetCount,
-  };
-}
+import { MarketplaceContext } from "./marketplace-context";
 
 export function MarketplaceProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
@@ -174,14 +42,14 @@ export function MarketplaceProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     queueMicrotask(() => {
-      const prefs = loadPrefs();
-      setState(loadState());
+      const prefs = loadMarketplacePrefs();
+      setState(loadMarketplaceState());
       if (prefs.role) setRole(prefs.role);
       if (prefs.currentUserId) setCurrentUserId(prefs.currentUserId);
       if (prefs.query !== undefined) setQuery(prefs.query);
       if (prefs.sector) setSector(prefs.sector);
       if (prefs.region) setRegion(prefs.region);
-      if (prefs.locale && isLocale(prefs.locale)) setLocale(prefs.locale);
+      if (prefs.locale) setLocale(prefs.locale);
       setPrefsLoaded(true);
       setIsLoading(false);
     });
@@ -197,7 +65,7 @@ export function MarketplaceProvider({ children }: { children: ReactNode }) {
       .then((nextState: MarketplaceState) => {
         if (!cancelled) {
           setState(nextState);
-          window.localStorage.setItem(storageKey, JSON.stringify(nextState));
+          saveMarketplaceState(nextState);
           setCanSyncDatabase(true);
           showToast("Marketplace data synced with PostgreSQL.", "success");
         }
@@ -217,7 +85,7 @@ export function MarketplaceProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (!prefsLoaded) return;
-    window.localStorage.setItem(prefsKey, JSON.stringify({ role, currentUserId, query, sector, region, locale }));
+    saveMarketplacePrefs({ role, currentUserId, query, sector, region, locale });
   }, [currentUserId, locale, prefsLoaded, query, region, role, sector]);
 
   const data = useMemo(
@@ -227,7 +95,7 @@ export function MarketplaceProvider({ children }: { children: ReactNode }) {
 
   function persist(next: MarketplaceState) {
     setState(next);
-    window.localStorage.setItem(storageKey, JSON.stringify(next));
+    saveMarketplaceState(next);
     if (!canSyncDatabase) {
       setActivity("Saved locally. PostgreSQL sync is unavailable.");
       return;
@@ -604,8 +472,4 @@ export function MarketplaceProvider({ children }: { children: ReactNode }) {
   );
 }
 
-export function useMarketplace() {
-  const value = useContext(MarketplaceContext);
-  if (!value) throw new Error("useMarketplace must be used inside MarketplaceProvider");
-  return value;
-}
+export { useMarketplace } from "./marketplace-context";
