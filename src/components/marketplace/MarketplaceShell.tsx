@@ -1,10 +1,10 @@
 "use client";
 
 import { ReactNode } from "react";
-import { Filter, RotateCcw, Search, ShieldCheck, Sparkles } from "lucide-react";
+import { Filter, Globe2, RotateCcw, Search, ShieldCheck, Sparkles } from "lucide-react";
 import clsx from "clsx";
 import { usePathname, useRouter } from "next/navigation";
-import { localeLabels, locales, translateRole } from "@/lib/i18n";
+import { localeShortLabels, locales, translateRole } from "@/lib/i18n";
 import type { Role } from "@/lib/types";
 import { SelectInput, TextInput } from "@/components/ui/Field";
 import { Button } from "@/components/ui/Button";
@@ -95,12 +95,17 @@ export function MarketplaceShell({
                   <option value="manager">{t("manager")}</option>
                 </select>
               </label>
-              <label className="flex h-11 items-center gap-2 rounded-md border border-[#d8c7b4] bg-[#fffaf3] px-3 text-sm font-semibold">
-                {t("language")}
-                <select value={locale} onChange={(event) => setLocale(event.target.value as typeof locales[number])} className="bg-transparent outline-none">
+              <label className="flex h-11 w-24 items-center gap-2 rounded-md border border-[#d8c7b4] bg-[#fffaf3] px-3 text-sm font-semibold">
+                <Globe2 className="h-4 w-4 text-[#9b6a2e]" />
+                <select
+                  value={locale}
+                  onChange={(event) => setLocale(event.target.value as typeof locales[number])}
+                  aria-label="Language"
+                  className="w-full bg-transparent outline-none"
+                >
                   {locales.map((item) => (
                     <option key={item} value={item}>
-                      {localeLabels[item]}
+                      {localeShortLabels[item]}
                     </option>
                   ))}
                 </select>

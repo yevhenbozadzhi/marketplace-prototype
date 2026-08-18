@@ -2,9 +2,9 @@ export const locales = ["en", "uk"] as const;
 
 export type Locale = (typeof locales)[number];
 
-export const localeLabels: Record<Locale, string> = {
-  en: "English",
-  uk: "Українська",
+export const localeShortLabels: Record<Locale, string> = {
+  en: "EN",
+  uk: "UA",
 };
 
 const translations = {
@@ -13,7 +13,6 @@ const translations = {
     buyer: "Buyer",
     seller: "Seller",
     manager: "Platform Manager",
-    language: "Language",
     resetDemo: "Reset demo",
     signUp: "Sign up",
     profile: "Profile",
@@ -120,7 +119,6 @@ const translations = {
     buyer: "Покупець",
     seller: "Продавець",
     manager: "Менеджер платформи",
-    language: "Мова",
     resetDemo: "Скинути демо",
     signUp: "Реєстрація",
     profile: "Профіль",
