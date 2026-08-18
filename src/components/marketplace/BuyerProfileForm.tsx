@@ -7,15 +7,15 @@ import { FormSkeleton } from "@/components/ui/Skeleton";
 import { useMarketplace } from "./MarketplaceProvider";
 
 export function BuyerProfileForm() {
-  const { currentUser, buyerProfile, isLoading, role, updateBuyerProfile } = useMarketplace();
+  const { currentUser, buyerProfile, isLoading, role, updateBuyerProfile, t } = useMarketplace();
 
   if (isLoading) return <FormSkeleton />;
 
   if (role !== "buyer") {
     return (
       <section className="rounded-md border border-[#ded6cc] bg-white p-8 text-center shadow-sm">
-        <h2 className="text-xl font-semibold">Buyer profile unavailable</h2>
-        <p className="mt-2 text-sm text-[#67594d]">Switch to a buyer account to maintain acquisition interests.</p>
+        <h2 className="text-xl font-semibold">{t("buyerProfileUnavailable")}</h2>
+        <p className="mt-2 text-sm text-[#67594d]">{t("buyerProfileUnavailableText")}</p>
       </section>
     );
   }
@@ -23,14 +23,14 @@ export function BuyerProfileForm() {
   return (
     <form onSubmit={updateBuyerProfile} className="rounded-md border border-[#ded6cc] bg-white p-5 shadow-sm">
       <div>
-        <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#9b6a2e]">Buyer Mandate</p>
+        <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#9b6a2e]">{t("buyerMandate")}</p>
         <h2 className="mt-1 text-2xl font-semibold">{currentUser?.company}</h2>
-        <p className="mt-2 text-sm text-[#67594d]">Maintain the acquisition profile sellers use to evaluate fit.</p>
+        <p className="mt-2 text-sm text-[#67594d]">{t("buyerProfileHelp")}</p>
       </div>
 
       <div className="mt-5 grid gap-4 md:grid-cols-2">
         <label className="text-sm font-semibold">
-          Ticket min, EUR M
+          {t("ticketMin")}
           <TextInput
             name="ticketMin"
             type="number"
@@ -40,7 +40,7 @@ export function BuyerProfileForm() {
           />
         </label>
         <label className="text-sm font-semibold">
-          Ticket max, EUR M
+          {t("ticketMax")}
           <TextInput
             name="ticketMax"
             type="number"
@@ -50,7 +50,7 @@ export function BuyerProfileForm() {
           />
         </label>
         <label className="text-sm font-semibold">
-          Target sectors
+          {t("targetSectors")}
           <TextInput
             name="targetSectors"
             defaultValue={buyerProfile?.targetSectors.join(", ") ?? ""}
@@ -59,7 +59,7 @@ export function BuyerProfileForm() {
           />
         </label>
         <label className="text-sm font-semibold">
-          Target regions
+          {t("targetRegions")}
           <TextInput
             name="targetRegions"
             defaultValue={buyerProfile?.targetRegions.join(", ") ?? ""}
@@ -68,7 +68,7 @@ export function BuyerProfileForm() {
           />
         </label>
         <label className="text-sm font-semibold md:col-span-2">
-          Mandate stage
+          {t("mandateStage")}
           <SelectInput
             name="mandateStage"
             defaultValue={buyerProfile?.mandateStage ?? "Active mandate"}
@@ -81,7 +81,7 @@ export function BuyerProfileForm() {
           </SelectInput>
         </label>
         <label className="text-sm font-semibold md:col-span-2">
-          Investment / acquisition interests
+          {t("investmentInterests")}
           <TextArea
             name="interestText"
             defaultValue={buyerProfile?.interestText ?? ""}
@@ -92,7 +92,7 @@ export function BuyerProfileForm() {
 
       <Button className="mt-5 h-11" variant="primary" type="submit">
         <Save className="h-4 w-4" />
-        Save profile
+        {t("saveProfile")}
       </Button>
     </form>
   );

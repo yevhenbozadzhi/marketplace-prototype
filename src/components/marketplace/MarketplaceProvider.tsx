@@ -6,6 +6,7 @@ import { calculateMatchScore } from "@/lib/matching";
 import { cloneSeedState } from "@/lib/seed";
 import type { Asset, ContactRequest, MarketplaceState, Participant, Role } from "@/lib/types";
 import { normalize } from "@/lib/format";
+import { isLocale, type Locale, translate, type TranslationKey } from "@/lib/i18n";
 import { ToastMessage, ToastViewport } from "@/components/ui/Toast";
 
 const storageKey = "n5deal-marketplace-state-v1";
@@ -37,6 +38,7 @@ function loadPrefs() {
       query: string;
       sector: string;
       region: string;
+      locale: Locale;
     }>;
   } catch {
     return {};
@@ -56,6 +58,7 @@ type MarketplaceContextValue = {
   query: string;
   sector: string;
   region: string;
+  locale: Locale;
   activity: string;
   isLoading: boolean;
   isSyncing: boolean;
@@ -66,6 +69,8 @@ type MarketplaceContextValue = {
   setQuery: (value: string) => void;
   setSector: (value: string) => void;
   setRegion: (value: string) => void;
+  setLocale: (value: Locale) => void;
+  t: (key: TranslationKey) => string;
   switchRole: (role: Role) => void;
   switchUser: (userId: string) => void;
   resetDemo: () => void;
@@ -151,6 +156,7 @@ export function MarketplaceProvider({ children }: { children: ReactNode }) {
   const [query, setQuery] = useState("");
   const [sector, setSector] = useState("all");
   const [region, setRegion] = useState("all");
+  const [locale, setLocale] = useState<Locale>("en");
   const [activity, setActivity] = useState("Marketplace is ready.");
   const [isLoading, setIsLoading] = useState(true);
   const [isSyncing, setIsSyncing] = useState(false);
@@ -175,6 +181,7 @@ export function MarketplaceProvider({ children }: { children: ReactNode }) {
       if (prefs.query !== undefined) setQuery(prefs.query);
       if (prefs.sector) setSector(prefs.sector);
       if (prefs.region) setRegion(prefs.region);
+      if (prefs.locale && isLocale(prefs.locale)) setLocale(prefs.locale);
       setPrefsLoaded(true);
       setIsLoading(false);
     });
@@ -210,8 +217,8 @@ export function MarketplaceProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (!prefsLoaded) return;
-    window.localStorage.setItem(prefsKey, JSON.stringify({ role, currentUserId, query, sector, region }));
-  }, [currentUserId, prefsLoaded, query, region, role, sector]);
+    window.localStorage.setItem(prefsKey, JSON.stringify({ role, currentUserId, query, sector, region, locale }));
+  }, [currentUserId, locale, prefsLoaded, query, region, role, sector]);
 
   const data = useMemo(
     () => deriveMarketplaceData(state, currentUserId, query, sector, region),
@@ -564,12 +571,15 @@ export function MarketplaceProvider({ children }: { children: ReactNode }) {
         query,
         sector,
         region,
+        locale,
         activity,
         isLoading,
         isSyncing,
         setQuery,
         setSector,
         setRegion,
+        setLocale,
+        t: (key) => translate(locale, key),
         switchRole,
         switchUser,
         resetDemo,

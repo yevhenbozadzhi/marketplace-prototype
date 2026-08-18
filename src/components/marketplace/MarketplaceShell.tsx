@@ -4,7 +4,7 @@ import { ReactNode } from "react";
 import { Filter, RotateCcw, Search, ShieldCheck, Sparkles } from "lucide-react";
 import clsx from "clsx";
 import { usePathname, useRouter } from "next/navigation";
-import { roleLabel } from "@/lib/format";
+import { localeLabels, locales, translateRole } from "@/lib/i18n";
 import type { Role } from "@/lib/types";
 import { SelectInput, TextInput } from "@/components/ui/Field";
 import { Button } from "@/components/ui/Button";
@@ -34,6 +34,7 @@ export function MarketplaceShell({
     query,
     sector,
     region,
+    locale,
     sectors,
     regions,
     isLoading,
@@ -44,7 +45,34 @@ export function MarketplaceShell({
     setQuery,
     setSector,
     setRegion,
+    setLocale,
+    t,
   } = useMarketplace();
+
+  const localizedTitle =
+    title === "All Listings"
+      ? t("allListings")
+      : title === "Asset Details"
+        ? t("assetDetails")
+        : title === "Chats"
+          ? t("chats")
+          : title === "Buyer Profile"
+            ? t("buyerProfile")
+            : title === "Sign Up"
+              ? t("signUp")
+              : title;
+  const localizedEyebrow =
+    eyebrow === "Marketplace"
+      ? t("marketplace")
+      : eyebrow === "Listing"
+        ? t("listing")
+        : eyebrow === "Secure communication"
+          ? t("secureCommunication")
+          : eyebrow === "Mandate"
+            ? t("mandate")
+            : eyebrow === "Account"
+              ? t("account")
+              : eyebrow;
 
   return (
     <main className="min-h-screen bg-[#f7f5f1] text-[#17130f]">
@@ -56,15 +84,25 @@ export function MarketplaceShell({
                 <ShieldCheck className="h-4 w-4" />
                 N5Deal
               </div>
-              <h1 className="mt-2 text-3xl font-semibold lg:text-4xl">{title}</h1>
+              <h1 className="mt-2 text-3xl font-semibold lg:text-4xl">{localizedTitle}</h1>
             </div>
             <div className="flex flex-col gap-3 sm:flex-row">
               <label className="flex h-11 items-center gap-2 rounded-md border border-[#d8c7b4] bg-[#fffaf3] px-3 text-sm font-semibold">
-                Role
+                {t("role")}
                 <select value={role} onChange={(event) => switchRole(event.target.value as Role)} className="bg-transparent outline-none">
-                  <option value="buyer">Buyer</option>
-                  <option value="seller">Seller</option>
-                  <option value="manager">Platform Manager</option>
+                  <option value="buyer">{t("buyer")}</option>
+                  <option value="seller">{t("seller")}</option>
+                  <option value="manager">{t("manager")}</option>
+                </select>
+              </label>
+              <label className="flex h-11 items-center gap-2 rounded-md border border-[#d8c7b4] bg-[#fffaf3] px-3 text-sm font-semibold">
+                {t("language")}
+                <select value={locale} onChange={(event) => setLocale(event.target.value as typeof locales[number])} className="bg-transparent outline-none">
+                  {locales.map((item) => (
+                    <option key={item} value={item}>
+                      {localeLabels[item]}
+                    </option>
+                  ))}
                 </select>
               </label>
               <select
@@ -86,10 +124,10 @@ export function MarketplaceShell({
                 type="button"
               >
                 <RotateCcw className="h-4 w-4" />
-                Reset demo
+                {t("resetDemo")}
               </Button>
               <Button className="h-11" onClick={() => router.push("/signup")} variant={pathname === "/signup" ? "primary" : "secondary"} type="button">
-                Sign up
+                {t("signUp")}
               </Button>
             </div>
           </div>
@@ -107,7 +145,7 @@ export function MarketplaceShell({
                   className={clsx("rounded-md px-3 py-2", pathname === "/assets" || pathname === "/" ? "bg-[#17130f] text-white" : "bg-[#f3eee7]")}
                   type="button"
                 >
-                  {roleLabel(role)}
+                  {translateRole(locale, role)}
                 </button>
                 <span className="rounded-md bg-[#f3eee7] px-3 py-2">
                   {currentUser?.name} · {currentUser?.location}
@@ -120,7 +158,7 @@ export function MarketplaceShell({
                 className={clsx("rounded-md px-3 py-2", pathname === "/profile" ? "bg-[#17130f] text-white" : "bg-[#f3eee7]")}
                 type="button"
               >
-                Profile
+                {t("profile")}
               </button>
             )}
             <button
@@ -128,16 +166,16 @@ export function MarketplaceShell({
               className={clsx("rounded-md px-3 py-2", pathname.startsWith("/assets/") ? "bg-[#17130f] text-white" : "bg-[#f3eee7]")}
               type="button"
             >
-              {currentAssetCount} assets
+              {currentAssetCount} {t("assets")}
             </button>
             <button
               onClick={() => router.push("/chats")}
               className={clsx("rounded-md px-3 py-2", pathname.startsWith("/chats") ? "bg-[#17130f] text-white" : "bg-[#f3eee7]")}
               type="button"
             >
-              {visibleContacts.length} chats
+              {visibleContacts.length} {t("chats")}
             </button>
-            {isSyncing && <span className="rounded-md bg-[#fff1d8] px-3 py-2 text-[#8f5f28]">Syncing...</span>}
+            {isSyncing && <span className="rounded-md bg-[#fff1d8] px-3 py-2 text-[#8f5f28]">{t("syncing")}</span>}
           </div>
         </div>
       </header>
@@ -147,27 +185,27 @@ export function MarketplaceShell({
           <div className="rounded-md border border-[#ded6cc] bg-white p-4">
             <div className="flex items-center gap-2 text-sm font-semibold">
               <Filter className="h-4 w-4 text-[#a76721]" />
-              Filters
+              {t("filters")}
             </div>
             <div className="relative mt-3">
               <Search className="pointer-events-none absolute left-3 top-3 h-4 w-4 text-[#8d8177]" />
               <TextInput
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
-                placeholder={role === "seller" ? "Find buyers..." : "Find assets..."}
+                placeholder={role === "seller" ? t("findBuyers") : t("findAssets")}
                 className="mt-0 pl-9"
               />
             </div>
             {role !== "seller" && (
               <div className="mt-3 grid gap-3">
                 <SelectInput value={sector} onChange={(event) => setSector(event.target.value)} className="mt-0">
-                  <option value="all">All sectors</option>
+                  <option value="all">{t("allSectors")}</option>
                   {sectors.map((item) => (
                     <option key={item}>{item}</option>
                   ))}
                 </SelectInput>
                 <SelectInput value={region} onChange={(event) => setRegion(event.target.value)} className="mt-0">
-                  <option value="all">All regions</option>
+                  <option value="all">{t("allRegions")}</option>
                   {regions.map((item) => (
                     <option key={item}>{item}</option>
                   ))}
@@ -179,14 +217,14 @@ export function MarketplaceShell({
           <div className="rounded-md border border-[#ded6cc] bg-white p-4">
             <div className="flex items-center gap-2 text-sm font-semibold">
               <Sparkles className="h-4 w-4 text-[#a76721]" />
-              Smart signal
+              {t("smartSignal")}
             </div>
             <p className="mt-2 text-sm leading-6 text-[#67594d]">
               {role === "buyer"
-                ? "Listings are ranked by sector, region and ticket fit."
+                ? t("smartBuyer")
                 : role === "seller"
-                  ? "Buyer cards expose mandate fit for focused outreach."
-                  : "Manager view keeps participant compliance visible."}
+                  ? t("smartSeller")
+                  : t("smartManager")}
             </p>
           </div>
         </aside>
@@ -201,8 +239,8 @@ export function MarketplaceShell({
                 </>
               ) : (
                 <>
-                  <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#9b6a2e]">{eyebrow}</p>
-                  <h2 className="mt-1 text-2xl font-semibold">{title}</h2>
+                  <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#9b6a2e]">{localizedEyebrow}</p>
+                  <h2 className="mt-1 text-2xl font-semibold">{localizedTitle}</h2>
                 </>
               )}
             </div>

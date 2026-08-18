@@ -12,6 +12,7 @@ Working marketplace prototype for M&A opportunities and financial assets. It cov
 - Local smart matching logic for AI-style deal recommendations
 - Persistent in-app chat threads for buyer/seller communication
 - URL-addressable screens for listings, asset details and chats
+- English/Ukrainian UI localization with persisted language preference
 
 ## Launch
 
@@ -86,6 +87,7 @@ Platform Manager:
 - **Database-backed persistence with fallback:** The primary persistence path is a Next.js API route backed by Prisma/PostgreSQL. `localStorage` remains as a graceful fallback so the prototype is still reviewable when PostgreSQL is not running.
 - **App Router structure:** The app is split into route-level pages and focused marketplace components rather than one large screen component.
 - **Role switcher instead of auth:** Authentication was intentionally simplified so reviewers can inspect all flows quickly.
+- **Lightweight i18n:** The prototype uses typed local dictionaries for English and Ukrainian UI copy. The language preference is stored with the rest of the reviewer preferences, so it survives refresh without adding route complexity to the demo.
 - **Chat instead of one-way contact:** Buyer/seller communication is represented as persistent chat threads backed by the Prisma data model. Platform Manager does not see private buyer/seller deal chats; managers can create separate compliance threads with participants. Realtime delivery is intentionally simulated in the prototype; a production version would add Socket.IO/ws in a separate Node service, or managed realtime such as Supabase Realtime/Pusher.
 - **Smart matching:** A transparent scoring function ranks assets by buyer mandate overlap. This demonstrates AI/product thinking without depending on an external AI API key.
 
@@ -105,6 +107,6 @@ AI assistance was used to accelerate product scoping, UI implementation, data mo
 
 - Add authentication and role-based authorization.
 - Add tests for filtering, matching and moderation flows.
-- Add multilingual UI support.
+- Add locale-prefixed routes and server-side dictionaries for production-grade internationalization.
 - Add richer compliance rules and moderation audit history.
 - Deploy with managed PostgreSQL, for example Neon or Supabase, plus Vercel.

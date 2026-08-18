@@ -9,7 +9,7 @@ import { useMarketplace } from "./MarketplaceProvider";
 
 export function ChatList() {
   const router = useRouter();
-  const { isLoading, role, visibleContacts, getCounterparty, getAsset } = useMarketplace();
+  const { isLoading, role, visibleContacts, getCounterparty, getAsset, t } = useMarketplace();
 
   if (isLoading) return <ListingGridSkeleton />;
 
@@ -17,9 +17,9 @@ export function ChatList() {
     return (
       <section className="rounded-md border border-[#ded6cc] bg-white p-8 text-center shadow-sm">
         <MessageSquare className="mx-auto h-8 w-8 text-[#a76721]" />
-        <h2 className="mt-3 text-xl font-semibold">No chats yet</h2>
+        <h2 className="mt-3 text-xl font-semibold">{t("noChats")}</h2>
         <p className="mt-2 text-sm text-[#67594d]">
-          {role === "manager" ? "Open a compliance thread from the participant table." : "Open a chat from a listing or participant card."}
+          {role === "manager" ? t("noChatsManager") : t("noChatsUser")}
         </p>
       </section>
     );
@@ -37,9 +37,9 @@ export function ChatList() {
             className="rounded-md border border-[#ded6cc] bg-white p-5 text-left shadow-sm hover:bg-[#fffaf3]"
             type="button"
           >
-            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#9b6a2e]">Secure Chat</p>
-            <h2 className="mt-2 text-xl font-semibold">{other?.company ?? "Marketplace participant"}</h2>
-            <p className="mt-2 text-sm text-[#67594d]">{asset?.title ?? "General conversation"}</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#9b6a2e]">{t("secureChat")}</p>
+            <h2 className="mt-2 text-xl font-semibold">{other?.company ?? t("marketplaceParticipant")}</h2>
+            <p className="mt-2 text-sm text-[#67594d]">{asset?.title ?? t("generalConversation")}</p>
           </button>
         );
       })}
@@ -48,7 +48,7 @@ export function ChatList() {
 }
 
 export function ChatView({ chatId }: { chatId: string }) {
-  const { currentUser, isLoading, visibleContacts, getCounterparty, sendChatMessage, canUseChat } = useMarketplace();
+  const { currentUser, isLoading, visibleContacts, getCounterparty, sendChatMessage, canUseChat, t } = useMarketplace();
   const chat = visibleContacts.find((contact) => contact.id === chatId);
   const isWritable = chat ? canUseChat(chat) : false;
   const messagesRef = useRef<HTMLDivElement>(null);
@@ -64,8 +64,8 @@ export function ChatView({ chatId }: { chatId: string }) {
     return (
       <section className="rounded-md border border-[#ded6cc] bg-white p-8 text-center shadow-sm">
         <MessageSquare className="mx-auto h-8 w-8 text-[#a76721]" />
-        <h2 className="mt-3 text-xl font-semibold">Chat unavailable</h2>
-        <p className="mt-2 text-sm text-[#67594d]">This secure thread is not visible for the current role and user.</p>
+        <h2 className="mt-3 text-xl font-semibold">{t("chatUnavailable")}</h2>
+        <p className="mt-2 text-sm text-[#67594d]">{t("chatUnavailableText")}</p>
       </section>
     );
   }
@@ -74,8 +74,8 @@ export function ChatView({ chatId }: { chatId: string }) {
     <section className="flex h-[620px] max-h-[calc(100vh-260px)] min-h-[460px] flex-col rounded-md border border-[#ded6cc] bg-white shadow-sm">
       <div className="shrink-0 flex items-center justify-between border-b border-[#ded6cc] p-4">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#9b6a2e]">Secure Chat</p>
-          <h2 className="mt-1 text-lg font-semibold">{getCounterparty(chat)?.company ?? "Marketplace participant"}</h2>
+          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#9b6a2e]">{t("secureChat")}</p>
+          <h2 className="mt-1 text-lg font-semibold">{getCounterparty(chat)?.company ?? t("marketplaceParticipant")}</h2>
         </div>
         <MessageSquare className="h-5 w-5 text-[#a76721]" />
       </div>
@@ -94,14 +94,14 @@ export function ChatView({ chatId }: { chatId: string }) {
       </div>
       {!isWritable && (
         <p className="border-t border-[#ded6cc] bg-[#fff1d8] px-4 py-3 text-sm font-semibold text-[#8f5f28]">
-          This chat is read-only because one participant is not active.
+          {t("chatReadonly")}
         </p>
       )}
       <form onSubmit={(event) => sendChatMessage(chat.id, event)} className="shrink-0 flex gap-2 border-t border-[#ded6cc] p-4">
-        <input disabled={!isWritable} name="message" placeholder="Write a message..." className="h-11 flex-1 rounded-md border border-[#d8c7b4] px-3 text-sm outline-none focus:border-[#17130f] disabled:bg-[#f3eee7]" />
+        <input disabled={!isWritable} name="message" placeholder={t("writeMessage")} className="h-11 flex-1 rounded-md border border-[#d8c7b4] px-3 text-sm outline-none focus:border-[#17130f] disabled:bg-[#f3eee7]" />
         <button disabled={!isWritable} className="inline-flex h-11 items-center gap-2 rounded-md bg-[#17130f] px-4 text-sm font-semibold text-white disabled:bg-[#8d8177]" type="submit">
           <Send className="h-4 w-4" />
-          Send
+          {t("send")}
         </button>
       </form>
     </section>

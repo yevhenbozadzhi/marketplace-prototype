@@ -2,34 +2,35 @@
 
 import { Ban, Eye, MessageSquare, UserPlus } from "lucide-react";
 import { normalize, formatMoney } from "@/lib/format";
+import { translateRole, translateStatus } from "@/lib/i18n";
 import { Button } from "@/components/ui/Button";
 import { SelectInput, TextInput } from "@/components/ui/Field";
 import { useMarketplace } from "./MarketplaceProvider";
 
 export function ManagerDashboard() {
-  const { state, query, filteredAssets, currentUser, createParticipant, updateParticipantStatus, openChat, openAsset } = useMarketplace();
+  const { state, query, filteredAssets, currentUser, locale, createParticipant, updateParticipantStatus, openChat, openAsset, t } = useMarketplace();
 
   return (
     <div className="space-y-5">
       <form onSubmit={createParticipant} className="rounded-md border border-[#ded6cc] bg-white p-5 shadow-sm">
         <div className="flex items-center gap-2 text-sm font-semibold">
           <UserPlus className="h-4 w-4 text-[#a76721]" />
-          Add participant account
+          {t("addParticipant")}
         </div>
         <div className="mt-4 grid gap-3 md:grid-cols-3">
           <SelectInput name="role" className="mt-0" required>
-            <option value="buyer">Buyer</option>
-            <option value="seller">Seller</option>
+            <option value="buyer">{t("buyer")}</option>
+            <option value="seller">{t("seller")}</option>
           </SelectInput>
-          <TextInput name="company" placeholder="Company" className="mt-0" required />
-          <TextInput name="name" placeholder="Contact name" className="mt-0" required />
-          <TextInput name="email" type="email" placeholder="Email" className="mt-0" required />
-          <TextInput name="location" placeholder="Location" className="mt-0" required />
-          <TextInput name="tags" placeholder="Tags, comma separated" className="mt-0" />
+          <TextInput name="company" placeholder={t("company")} className="mt-0" required />
+          <TextInput name="name" placeholder={t("contactName")} className="mt-0" required />
+          <TextInput name="email" type="email" placeholder={t("email")} className="mt-0" required />
+          <TextInput name="location" placeholder={t("location")} className="mt-0" required />
+          <TextInput name="tags" placeholder={t("tagsComma")} className="mt-0" />
         </div>
         <Button className="mt-4" variant="primary" type="submit">
           <UserPlus className="h-4 w-4" />
-          Create account
+          {t("createAccount")}
         </Button>
       </form>
 
@@ -38,11 +39,11 @@ export function ManagerDashboard() {
           <table className="w-full min-w-[760px] text-left text-sm">
             <thead className="bg-[#f8efe3] text-xs uppercase tracking-[0.12em] text-[#7b6b5d]">
               <tr>
-                <th className="px-4 py-3">Participant</th>
-                <th className="px-4 py-3">Role</th>
-                <th className="px-4 py-3">Location</th>
-                <th className="px-4 py-3">Status</th>
-                <th className="px-4 py-3">Actions</th>
+                <th className="px-4 py-3">{t("participant")}</th>
+                <th className="px-4 py-3">{t("role")}</th>
+                <th className="px-4 py-3">{t("location")}</th>
+                <th className="px-4 py-3">{t("status")}</th>
+                <th className="px-4 py-3">{t("actions")}</th>
               </tr>
             </thead>
             <tbody>
@@ -55,9 +56,9 @@ export function ManagerDashboard() {
                       <b>{participant.company}</b>
                       <span className="block text-xs text-[#67594d]">{participant.name} · {participant.email}</span>
                     </td>
-                    <td className="px-4 py-3 capitalize">{participant.role}</td>
+                    <td className="px-4 py-3">{translateRole(locale, participant.role)}</td>
                     <td className="px-4 py-3">{participant.location}</td>
-                    <td className="px-4 py-3">{participant.status}</td>
+                    <td className="px-4 py-3">{translateStatus(locale, participant.status)}</td>
                     <td className="px-4 py-3">
                       <div className="flex gap-2">
                         <Button
@@ -65,7 +66,7 @@ export function ManagerDashboard() {
                           variant={participant.status === "active" ? "active" : "secondary"}
                           type="button"
                         >
-                          Active
+                          {t("active")}
                         </Button>
                         <Button
                           onClick={() => updateParticipantStatus(participant.id, "suspended")}
@@ -73,19 +74,19 @@ export function ManagerDashboard() {
                           type="button"
                         >
                           <Ban className="h-3 w-3" />
-                          Suspend
+                          {t("suspend")}
                         </Button>
                         <Button
                           onClick={() => updateParticipantStatus(participant.id, "removed")}
                           variant={participant.status === "removed" ? "active" : "danger"}
                           type="button"
                         >
-                          Remove
+                          {t("remove")}
                         </Button>
                         {currentUser && (
                           <Button onClick={() => openChat(participant)} type="button">
                             <MessageSquare className="h-3 w-3" />
-                            Chat
+                            {t("chat")}
                           </Button>
                         )}
                       </div>
@@ -102,10 +103,10 @@ export function ManagerDashboard() {
           <article key={asset.id} className="rounded-md border border-[#ded6cc] bg-white p-5 shadow-sm">
             <div className="flex items-start justify-between gap-4">
               <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#9b6a2e]">Asset</p>
+                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#9b6a2e]">{t("asset")}</p>
                 <h2 className="mt-1 text-lg font-semibold">{asset.title}</h2>
               </div>
-              <span className="rounded-md bg-[#f3eee7] px-3 py-1 text-sm font-semibold">{asset.status}</span>
+              <span className="rounded-md bg-[#f3eee7] px-3 py-1 text-sm font-semibold">{translateStatus(locale, asset.status)}</span>
             </div>
             <div className="mt-4 grid grid-cols-2 gap-3 text-sm">
               <span>{asset.region}</span>
@@ -115,7 +116,7 @@ export function ManagerDashboard() {
             </div>
             <Button onClick={() => openAsset(asset.id)} className="mt-4" type="button">
               <Eye className="h-4 w-4" />
-              View Asset
+              {t("viewAsset")}
             </Button>
           </article>
         ))}
