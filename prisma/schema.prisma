@@ -1,0 +1,103 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  BUYER
+  SELLER
+  MANAGER
+}
+
+enum ParticipantStatus {
+  ACTIVE
+  SUSPENDED
+  REMOVED
+}
+
+enum AssetStatus {
+  DRAFT
+  PUBLISHED
+  SUSPENDED
+}
+
+enum ContactStatus {
+  NEW
+  REPLIED
+  ARCHIVED
+}
+
+model Participant {
+  id             String            @id @default(cuid())
+  role           Role
+  name           String
+  company        String
+  email          String            @unique
+  location       String
+  status         ParticipantStatus @default(ACTIVE)
+  tags           String[]
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+  buyerProfile   BuyerProfile?
+  sellerAssets   Asset[]           @relation("SellerAssets")
+  sentChats       ChatThread[]      @relation("SentChats")
+  receivedChats   ChatThread[]      @relation("ReceivedChats")
+  chatMessages    ChatMessage[]
+}
+
+model BuyerProfile {
+  id            String      @id @default(cuid())
+  participantId String      @unique
+  participant   Participant @relation(fields: [participantId], references: [id], onDelete: Cascade)
+  ticketMin     Int
+  ticketMax     Int
+  targetRegions String[]
+  targetSectors String[]
+  interestText  String
+  mandateStage  String
+}
+
+model Asset {
+  id          String       @id @default(cuid())
+  sellerId    String
+  seller      Participant  @relation("SellerAssets", fields: [sellerId], references: [id], onDelete: Cascade)
+  title       String
+  type        String
+  sector      String
+  region      String
+  priceMin    Int
+  priceMax    Int
+  ebitda      Int?
+  description String
+  status      AssetStatus  @default(PUBLISHED)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  chats       ChatThread[]
+}
+
+model ChatThread {
+  id          String        @id @default(cuid())
+  fromId      String
+  toId        String
+  assetId     String?
+  status      ContactStatus @default(NEW)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  from        Participant   @relation("SentChats", fields: [fromId], references: [id], onDelete: Cascade)
+  to          Participant   @relation("ReceivedChats", fields: [toId], references: [id], onDelete: Cascade)
+  asset       Asset?        @relation(fields: [assetId], references: [id], onDelete: SetNull)
+  messages    ChatMessage[]
+}
+
+model ChatMessage {
+  id        String      @id @default(cuid())
+  threadId  String
+  senderId  String
+  body      String
+  createdAt DateTime    @default(now())
+  thread    ChatThread  @relation(fields: [threadId], references: [id], onDelete: Cascade)
+  sender    Participant @relation(fields: [senderId], references: [id], onDelete: Cascade)
+}
