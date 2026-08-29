@@ -10,6 +10,7 @@ import { SelectInput, TextInput } from "@/components/ui/Field";
 import { Button } from "@/components/ui/Button";
 import { SkeletonBlock } from "@/components/ui/Skeleton";
 import { useMarketplace } from "./MarketplaceProvider";
+import Link from "next/link";
 
 export function MarketplaceShell({
   title,
@@ -81,10 +82,10 @@ export function MarketplaceShell({
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div>
               <div className="flex flex-wrap items-center gap-3">
-                <div className="flex items-center gap-3 text-sm font-semibold uppercase tracking-[0.18em] text-[#9b6a2e]">
+                <Link className="flex items-center gap-3 text-sm font-semibold uppercase tracking-[0.18em] text-[#9b6a2e] cursor-pointer" href='/'>
                   <ShieldCheck className="h-4 w-4" />
                   N5Deal
-                </div>
+                </Link>
                 <label className="flex h-8 items-center gap-2 rounded-md border border-[#d8c7b4] bg-[#fffaf3] px-2 text-xs font-semibold tracking-normal text-[#17130f]">
                   <Globe2 className="h-3.5 w-3.5 text-[#9b6a2e]" />
                   <select

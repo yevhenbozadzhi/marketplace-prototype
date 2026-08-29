@@ -1,6 +1,6 @@
-import { PrismaClient } from "@prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { seedState } from "../src/lib/seed";
+import { PrismaClient } from "@prisma/client/extension";
 
 const adapter = new PrismaPg({
   connectionString:

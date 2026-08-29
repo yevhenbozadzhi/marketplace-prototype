@@ -1,4 +1,3 @@
-import "dotenv/config";
 import { defineConfig } from "prisma/config";
 
 export default defineConfig({
@@ -7,8 +6,6 @@ export default defineConfig({
     path: "prisma/migrations",
   },
   datasource: {
-    url:
-      process.env.DATABASE_URL ??
-      "postgresql://n5deal:n5deal@localhost:5432/n5deal_marketplace?schema=public",
+    url: "postgresql://n5deal:n5deal@postgres:5432/n5deal_marketplace?schema=public",
   },
 });

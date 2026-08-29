@@ -3,14 +3,42 @@ services:
     image: postgres:16-alpine
     container_name: n5deal_marketplace_postgres
     restart: unless-stopped
+
     environment:
       POSTGRES_USER: n5deal
       POSTGRES_PASSWORD: n5deal
       POSTGRES_DB: n5deal_marketplace
+
     ports:
       - "5432:5432"
+
     volumes:
       - n5deal_postgres_data:/var/lib/postgresql/data
+
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U n5deal -d n5deal_marketplace"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+
+    container_name: n5deal_marketplace_app
+    restart: unless-stopped
+
+    ports:
+      - "3000:3000"
+
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: "postgresql://n5deal:n5deal@postgres:5432/n5deal_marketplace?schema=public"
+
+    depends_on:
+      postgres:
+        condition: service_healthy
 
 volumes:
   n5deal_postgres_data:
