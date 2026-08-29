@@ -1,7 +1,18 @@
-import type { AssetStatus, ParticipantStatus, Role } from "@prisma/client";
+import type {
+  AssetStatus,
+  ParticipantStatus,
+  Role,
+} from "@/generated/prisma/client";
+
 import { getPrisma } from "@/lib/prisma";
+
 import { cloneSeedState } from "@/lib/seed";
-import type { MarketplaceState, Participant, Asset } from "@/lib/types";
+
+import type {
+  MarketplaceState,
+  Participant,
+  Asset,
+} from "@/lib/types";
 
 function toDbRole(role: Participant["role"]): Role {
   return role.toUpperCase() as Role;
