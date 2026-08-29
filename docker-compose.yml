@@ -19,7 +19,7 @@ services:
       retries: 10
 
   app:
-    image: USERNAME/REPOSITORY:latest
+    image: yevhenbozadzhi/n5deal-marketplace:latest
     container_name: n5deal_marketplace_app
     restart: unless-stopped
 
