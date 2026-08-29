@@ -1,5 +1,5 @@
 import type { AssetStatus, ParticipantStatus, Role } from "@prisma/client";
-import { prisma } from "@/lib/prisma";
+import { getPrisma } from "@/lib/prisma";
 import { cloneSeedState } from "@/lib/seed";
 import type { MarketplaceState, Participant, Asset } from "@/lib/types";
 
@@ -28,6 +28,7 @@ function fromDbAssetStatus(status: AssetStatus): Asset["status"] {
 }
 
 export async function readMarketplaceState(): Promise<MarketplaceState> {
+    const prisma = getPrisma();
   const [participants, buyerProfiles, assets, chats] = await Promise.all([
     prisma.participant.findMany({ orderBy: { createdAt: "asc" } }),
     prisma.buyerProfile.findMany(),
@@ -96,6 +97,7 @@ export async function readMarketplaceState(): Promise<MarketplaceState> {
 }
 
 export async function writeMarketplaceState(state: MarketplaceState) {
+    const prisma = getPrisma();
   const chatMessages = state.contacts.flatMap((contact) =>
     contact.message.split("\n\n").map((rawMessage, index) => {
       const [maybeCompany, ...bodyParts] = rawMessage.split(": ");

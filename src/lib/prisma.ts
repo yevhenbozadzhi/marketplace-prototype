@@ -1,16 +1,35 @@
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient } from "@/generated/prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 
 const globalForPrisma = globalThis as unknown as {
   prisma?: PrismaClient;
 };
 
-const adapter = new PrismaPg({
-  connectionString:
-    process.env.DATABASE_URL ??
-    "postgresql://n5deal:n5deal@localhost:5432/n5deal_marketplace?schema=public",
-});
+let client: PrismaClient | undefined;
 
-export const prisma = globalForPrisma.prisma ?? new PrismaClient({ adapter });
+export function getPrisma(): PrismaClient {
+  if (client) return client;
 
-if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma;
+  if (globalForPrisma.prisma) {
+    client = globalForPrisma.prisma;
+    return client;
+  }
+
+  const connectionString = process.env.DATABASE_URL;
+
+  if (!connectionString) {
+    throw new Error("DATABASE_URL is not set");
+  }
+
+  const adapter = new PrismaPg({
+    connectionString,
+  });
+
+  client = new PrismaClient({ adapter });
+
+  if (process.env.NODE_ENV !== "production") {
+    globalForPrisma.prisma = client;
+  }
+
+  return client;
+}
